@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Раскрой профиля — эконом-линейка</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+  :root {
+    --bg: #101825;
+    --panel: #16202E;
+    --panel-border: #223047;
+    --input-bg: #0B121C;
+    --input-border: #2C3B52;
+    --text: #E7EEF4;
+    --muted: #8FA3B8;
+    --muted2: #6E8399;
+    --accent: #FF8A3D;
+    --accent-dark: #1B120A;
+    --row-bg: #0F1826;
+    --green: #8FD1B9;
+    --red: #C97064;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow Condensed', 'Inter', sans-serif;
+  }
+
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  .wrap {
+    max-width: 1024px;
+    margin: 0 auto;
+    padding: 32px 16px;
+  }
+
+  @media (min-width: 640px) {
+    .wrap { padding: 32px; }
+  }
+
+  .title-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 4px;
+  }
+
+  h1 {
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    margin: 0;
+  }
+
+  @media (min-width: 640px) {
+    h1 { font-size: 34px; }
+  }
+
+  .subtitle {
+    font-size: 13px;
+    color: var(--muted);
+    margin: 0 0 24px 0;
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+
+  @media (min-width: 640px) {
+    .panel { padding: 20px; }
+  }
+
+  .settings-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  @media (min-width: 640px) {
+    .settings-grid { grid-template-columns: repeat(4, 1fr); }
+  }
+
+  .field label {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  input, select {
+    width: 100%;
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
+    color: var(--text);
+    border-radius: 6px;
+    padding: 7px 8px;
+    font-family: inherit;
+    font-size: 15px;
+  }
+
+  input[type=number].big { font-size: 18px; }
+
+  .calc-col {
+    grid-column: span 2 / span 2;
+    display: flex;
+    align-items: flex-end;
+  }
+
+  @media (min-width: 640px) {
+    .calc-col { grid-column: span 2 / span 2; }
+  }
+
+  .btn-calc {
+    width: 100%;
+    border: none;
+    border-radius: 6px;
+    background: var(--accent);
+    color: var(--accent-dark);
+    font-weight: 600;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: transform 0.05s;
+  }
+  .btn-calc:active { transform: scale(0.98); }
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+
+  h2 {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    margin: 0;
+  }
+
+  .btn-add {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 14px;
+    border-radius: 6px;
+    padding: 6px 12px;
+    background: #1E2C3E;
+    color: var(--green);
+    border: 1px solid var(--input-border);
+    cursor: pointer;
+  }
+
+  .legend {
+    font-size: 12px;
+    color: var(--muted2);
+    margin: 0 0 12px 0;
+  }
+
+  .col-headers {
+    display: none;
+    grid-template-columns: 70px 1fr 120px 100px 40px;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--muted2);
+    margin-bottom: 8px;
+  }
+
+  @media (min-width: 640px) {
+    .col-headers { display: grid; }
+  }
+
+  .pieces-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .piece-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    align-items: center;
+    background: var(--row-bg);
+    border-radius: 6px;
+    padding: 8px;
+  }
+
+  @media (min-width: 640px) {
+    .piece-row { grid-template-columns: 70px 1fr 120px 100px 40px; }
+  }
+
+  .span2 { grid-column: span 2 / span 2; }
+  @media (min-width: 640px) {
+    .span2 { grid-column: span 1 / span 1; }
+  }
+
+  .type-select {
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .remove-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: none;
+    border: none;
+    color: var(--red);
+    cursor: pointer;
+    padding: 4px;
+  }
+
+  .error-box {
+    background: #3A1E18;
+    border: 1px solid #6B3A2C;
+    color: #F3B9A8;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 20px;
+    font-size: 14px;
+  }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .stat-box, .type-box {
+    background: var(--row-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 6px;
+    padding: 12px;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: var(--muted2);
+    margin-bottom: 4px;
+  }
+
+  .stat-value {
+    font-size: 20px;
+    font-weight: 600;
+  }
+
+  .type-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .type-box-label {
+    font-size: 11px;
+    margin-bottom: 4px;
+  }
+
+  .type-box-value {
+    font-size: 17px;
+    font-weight: 600;
+  }
+
+  .bars-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .bar-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  .bar-track {
+    width: 100%;
+    display: flex;
+    height: 44px;
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
+  }
+
+  .cut-block {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 500;
+    overflow: hidden;
+    padding: 0 2px;
+    white-space: nowrap;
+  }
+
+  .waste-block {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    background: #1B2430;
+    background-image: repeating-linear-gradient(45deg, rgba(255,138,61,0.18), rgba(255,138,61,0.18) 6px, transparent 6px, transparent 12px);
+  }
+
+  .legend-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 20px;
+    font-size: 12px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .swatch {
+    width: 12px;
+    height: 12px;
+    display: inline-block;
+    border-radius: 2px;
+  }
+
+  .history-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .history-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    gap: 8px;
+    background: var(--row-bg);
+    border-radius: 6px;
+    padding: 8px;
+    font-size: 13px;
+  }
+
+  @media (min-width: 640px) {
+    .history-row { grid-template-columns: 160px 1fr auto auto; gap: 12px; }
+  }
+
+  .history-mid {
+    display: none;
+    color: var(--muted2);
+  }
+
+  @media (min-width: 640px) {
+    .history-mid { display: inline; }
+  }
+
+  .history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .icon-btn {
+    padding: 6px;
+    border-radius: 6px;
+    background: #1E2C3E;
+    border: 1px solid var(--input-border);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .history-actions { display: flex; gap: 4px; }
+
+  svg.icon { display: block; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="title-row">
+    <svg class="icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FF8A3D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.4 2.4 0 0 1 0-3.4l2.6-2.6a2.4 2.4 0 0 1 3.4 0Z"/><path d="m14.5 12.5 2-2"/><path d="m11.5 9.5 2-2"/><path d="m8.5 6.5 2-2"/><path d="m17.5 15.5 2-2"/></svg>
+    <h1>РАСКРОЙ ПРОФИЛЯ — ЭКОНОМ-ЛИНЕЙКА</h1>
+  </div>
+  <p class="subtitle">Оптимальная раскладка деталей по хлыстам профиля. Каждый хлыст заполняется максимально плотно (разные длины комбинируются).</p>
+
+  <!-- Settings -->
+  <div class="panel">
+    <div class="settings-grid">
+      <div class="field">
+        <label>Длина хлыста, мм</label>
+        <input id="stockLength" type="number" class="mono big" value="6000" />
+      </div>
+      <div class="field">
+        <label>Пропил (кермф), мм</label>
+        <input id="kerf" type="number" class="mono big" value="5" />
+      </div>
+      <div class="calc-col">
+        <button class="btn-calc" id="calcBtn">
+          <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 12-8.5 8.5a2.12 2.12 0 1 1-3-3L12 9"/><path d="M17.64 15 22 10.64"/><path d="m20.91 11.7-1.25-1.25c-.6-.6-.93-1.4-.93-2.25v-.86L16.01 4.6a5.56 5.56 0 0 0-3.94-1.64H9l.92.82A6.18 6.18 0 0 1 12 8.4v1.56l2 2h1.86c.85 0 1.65.33 2.25.93l1.25 1.25"/></svg>
+          РАССЧИТАТЬ РАСКРОЙ
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pieces table -->
+  <div class="panel">
+    <div class="panel-header">
+      <h2>ДЕТАЛИ</h2>
+      <button class="btn-add" id="addPieceBtn">
+        <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+        Добавить
+      </button>
+    </div>
+    <p class="legend">L — рама · T — импост (делит окно на части) · Z — створка (открывающаяся часть)</p>
+
+    <div class="col-headers">
+      <span>ТИП</span>
+      <span>НАЗВАНИЕ</span>
+      <span>ДЛИНА, ММ</span>
+      <span>КОЛ-ВО</span>
+      <span></span>
+    </div>
+
+    <div class="pieces-list" id="piecesList"></div>
+  </div>
+
+  <div id="errorBox" style="display:none;"></div>
+
+  <div id="resultPanel"></div>
+
+  <div id="historyPanel"></div>
+</div>
+
+<script>
+  const TYPE_LABELS = { L: "Рама", T: "Импост", Z: "Створка" };
+  const TYPE_FILLS = {
+    L: { bg: "#DCEFFB", border: "#7FB8DC", text: "#173247" },
+    T: { bg: "#E6E0F8", border: "#A995DD", text: "#2A2145" },
+    Z: { bg: "#DFF5E1", border: "#7FCB8E", text: "#1B3A22" },
+  };
+
+  let uid = 100;
+  const nextId = () => uid++;
+
+  let pieces = [
+    { id: nextId(), type: "L", label: "Рама верх/низ", length: 1180, qty: 12 },
+    { id: nextId(), type: "L", label: "Рама стойка", length: 1420, qty: 12 },
+    { id: nextId(), type: "T", label: "Импост", length: 1160, qty: 6 },
+    { id: nextId(), type: "Z", label: "Створка", length: 1150, qty: 6 },
+  ];
+
+  let result = null;
+  let history = [];
+  let historyLoaded = false;
+
+  // ---------- Packing algorithm (ported 1:1 from the React version) ----------
+
+  function knapsack01(pseudoItems, capacity) {
+    const n = pseudoItems.length;
+    const dp = new Int32Array(capacity + 1);
+    const take = new Uint8Array(n * (capacity + 1));
+
+    for (let i = 0; i < n; i++) {
+      const w = pseudoItems[i].weight;
+      if (w > capacity || w <= 0) continue;
+      for (let j = capacity; j >= w; j--) {
+        const candidate = dp[j - w] + w;
+        if (candidate > dp[j]) {
+          dp[j] = candidate;
+          take[i * (capacity + 1) + j] = 1;
+        }
+      }
+    }
+
+    const chosen = [];
+    let j = capacity;
+    for (let i = n - 1; i >= 0; i--) {
+      if (take[i * (capacity + 1) + j] === 1) {
+        chosen.push(i);
+        j -= pseudoItems[i].weight;
+      }
+    }
+    return { totalWeight: dp[capacity], chosenIndices: chosen };
+  }
+
+  function bestBinFill(lengthCounts, capacity, kerf) {
+    const pseudoItems = [];
+    lengthCounts.forEach(({ length, count }) => {
+      const unitWeight = length + kerf;
+      let remaining = count;
+      let chunk = 1;
+      while (remaining > 0) {
+        const take = Math.min(chunk, remaining);
+        pseudoItems.push({ length, count: take, weight: unitWeight * take });
+        remaining -= take;
+        chunk *= 2;
+      }
+    });
+
+    const { chosenIndices } = knapsack01(pseudoItems, capacity);
+    const perLength = new Map();
+    chosenIndices.forEach((i) => {
+      const { length, count } = pseudoItems[i];
+      perLength.set(length, (perLength.get(length) || 0) + count);
+    });
+    return perLength;
+  }
+
+  function packItemsDP(items, capacity, kerf) {
+    const queues = new Map();
+    items.forEach((item) => {
+      const len = Math.round(item.length);
+      if (!queues.has(len)) queues.set(len, []);
+      queues.get(len).push(item);
+    });
+
+    const bins = [];
+    let totalRemaining = items.length;
+
+    while (totalRemaining > 0) {
+      const lengthCounts = [];
+      queues.forEach((q, len) => {
+        if (q.length > 0) lengthCounts.push({ length: len, count: q.length });
+      });
+
+      const perLength = bestBinFill(lengthCounts, capacity, kerf);
+
+      let placedThisBin = 0;
+      const cuts = [];
+      perLength.forEach((count, len) => {
+        const q = queues.get(len);
+        for (let k = 0; k < count; k++) {
+          cuts.push(q.shift());
+          placedThisBin++;
+        }
+      });
+
+      if (placedThisBin === 0) break;
+
+      const used = cuts.reduce((s, c) => s + c.length + kerf, 0);
+      bins.push({ remaining: capacity - used, cuts });
+      totalRemaining -= placedThisBin;
+    }
+
+    return { bins, unplaced: totalRemaining };
+  }
+
+  function reduceBinCount(initialBars, kerf) {
+    let bars = initialBars.map((b) => ({ remaining: b.remaining, cuts: [...b.cuts] }));
+    let improved = true;
+
+    while (improved) {
+      improved = false;
+      const order = bars.map((_, i) => i).sort((a, b) => bars[b].remaining - bars[a].remaining);
+
+      for (const idx of order) {
+        const candidate = bars[idx];
+        const others = bars.filter((_, i) => i !== idx);
+        const trial = others.map((b) => ({ remaining: b.remaining, cuts: [...b.cuts] }));
+        const sortedCuts = [...candidate.cuts].sort((a, b) => b.length - a.length);
+
+        let success = true;
+        for (const cut of sortedCuts) {
+          const need = cut.length + kerf;
+          let bestIdx = -1;
+          let bestRemainder = Infinity;
+          trial.forEach((b, i2) => {
+            if (b.remaining >= need && b.remaining - need < bestRemainder) {
+              bestRemainder = b.remaining - need;
+              bestIdx = i2;
+            }
+          });
+          if (bestIdx === -1) { success = false; break; }
+          trial[bestIdx].remaining -= need;
+          trial[bestIdx].cuts.push(cut);
+        }
+
+        if (success) {
+          bars = trial;
+          improved = true;
+          break;
+        }
+      }
+    }
+
+    return bars;
+  }
+
+  // ---------- Storage / history ----------
+
+  async function loadHistory() {
+    try {
+      const listed = await window.storage.list("history:", false);
+      const keys = (listed && listed.keys) || [];
+      const entries = [];
+      for (const key of keys) {
+        try {
+          const rec = await window.storage.get(key, false);
+          if (rec && rec.value) entries.push(JSON.parse(rec.value));
+        } catch (e) { /* skip unreadable entry */ }
+      }
+      entries.sort((a, b) => b.ts - a.ts);
+      history = entries;
+    } catch (e) {
+      history = [];
+    } finally {
+      historyLoaded = true;
+      renderHistory();
+    }
+  }
+
+  async function saveHistoryEntry(entry) {
+    try {
+      await window.storage.set(`history:${entry.ts}`, JSON.stringify(entry), false);
+      history = [entry, ...history].slice(0, 30);
+    } catch (e) { /* best-effort */ }
+    renderHistory();
+  }
+
+  async function deleteHistoryEntry(ts) {
+    try {
+      await window.storage.delete(`history:${ts}`, false);
+    } catch (e) { /* ignore */ }
+    history = history.filter((item) => item.ts !== ts);
+    renderHistory();
+  }
+
+  function restoreHistoryEntry(entry) {
+    document.getElementById("stockLength").value = entry.stockLength;
+    document.getElementById("kerf").value = entry.kerf;
+    pieces = entry.pieces.map((p) => ({ ...p, id: nextId() }));
+    result = entry.result;
+    renderPieces();
+    renderError("");
+    renderResult();
+  }
+
+  // ---------- Rendering ----------
+
+  function fmt(n) { return n.toLocaleString("ru-RU"); }
+
+  function renderPieces() {
+    const list = document.getElementById("piecesList");
+    list.innerHTML = "";
+    pieces.forEach((row) => {
+      const fill = TYPE_FILLS[row.type || "L"];
+      const rowEl = document.createElement("div");
+      rowEl.className = "piece-row";
+      rowEl.innerHTML = `
+        <select class="span2 type-select" data-id="${row.id}" data-field="type"
+          style="background:${fill.bg}; border:1px solid ${fill.border}; color:${fill.text};">
+          <option value="L" ${row.type === "L" ? "selected" : ""}>L</option>
+          <option value="T" ${row.type === "T" ? "selected" : ""}>T</option>
+          <option value="Z" ${row.type === "Z" ? "selected" : ""}>Z</option>
+        </select>
+        <input class="span2" data-id="${row.id}" data-field="label" value="${escapeAttr(row.label)}" placeholder="напр. Рама стойка" />
+        <input class="mono" type="number" data-id="${row.id}" data-field="length" value="${row.length}" />
+        <input class="mono" type="number" data-id="${row.id}" data-field="qty" value="${row.qty}" />
+        <button class="remove-btn" data-id="${row.id}" data-action="remove">
+          <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+        </button>
+      `;
+      list.appendChild(rowEl);
+    });
+
+    list.querySelectorAll("input, select").forEach((el) => {
+      el.addEventListener("change", (e) => {
+        const id = Number(e.target.dataset.id);
+        const field = e.target.dataset.field;
+        updatePiece(id, field, e.target.value);
+      });
+      el.addEventListener("input", (e) => {
+        const id = Number(e.target.dataset.id);
+        const field = e.target.dataset.field;
+        updatePiece(id, field, e.target.value, true);
+      });
+    });
+
+    list.querySelectorAll("[data-action='remove']").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        const id = Number(e.currentTarget.dataset.id);
+        removePiece(id);
+      });
+    });
+  }
+
+  function escapeAttr(s) {
+    return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+  }
+
+  function updatePiece(id, field, value, isTyping) {
+    const row = pieces.find((p) => p.id === id);
+    if (!row) return;
+    row[field] = value;
+    if (field === "type" && !isTyping) renderPieces();
+  }
+
+  function addPiece() {
+    pieces.push({ id: nextId(), type: "L", label: "", length: 1000, qty: 1 });
+    renderPieces();
+  }
+
+  function removePiece(id) {
+    pieces = pieces.filter((row) => row.id !== id);
+    renderPieces();
+  }
+
+  function renderError(msg) {
+    const box = document.getElementById("errorBox");
+    if (!msg) {
+      box.style.display = "none";
+      box.textContent = "";
+    } else {
+      box.className = "error-box";
+      box.style.display = "block";
+      box.textContent = msg;
+    }
+  }
+
+  function renderResult() {
+    const panel = document.getElementById("resultPanel");
+    if (!result) { panel.innerHTML = ""; return; }
+
+    const typeBoxes = ["L", "T", "Z"].map((t) => {
+      const fill = TYPE_FILLS[t];
+      const tt = result.typeTotals[t];
+      return `
+        <div class="type-box" style="border:1px solid ${fill.border};">
+          <div class="type-box-label" style="color:${fill.border};">${t} · ${TYPE_LABELS[t]}</div>
+          <div class="mono type-box-value">${tt.qty} шт · ${fmt(tt.length)} мм · ${tt.bars} хлыст.${tt.bars === 1 ? "" : "ов"}</div>
+        </div>
+      `;
+    }).join("");
+
+    const barsHtml = result.bars.map((bar, idx) => {
+      const used = result.stockLength - Math.max(0, bar.remaining);
+      const cutsHtml = bar.cuts.map((cut) => {
+        const fill = TYPE_FILLS[cut.type];
+        const widthPct = ((cut.length + result.kerf) / result.stockLength) * 100;
+        return `
+          <div class="cut-block" title="${escapeAttr(cut.label)} (${cut.type}): ${cut.length} мм"
+            style="width:${widthPct}%; background:${fill.bg}; border-right:2px solid ${fill.border}; color:${fill.text};">
+            ${widthPct > 4 ? cut.length : ""}
+          </div>
+        `;
+      }).join("");
+
+      const wasteHtml = bar.remaining > 0 ? `
+        <div class="waste-block" style="width:${(bar.remaining / result.stockLength) * 100}%;">
+          <span style="color:#FF8A3D;">${bar.remaining > 260 ? `отход ${Math.round(bar.remaining)}` : ""}</span>
+        </div>
+      ` : "";
+
+      return `
+        <div>
+          <div class="bar-meta mono">
+            <span>ХЛЫСТ ${bar.type}-${bar.barIndex} · ${TYPE_LABELS[bar.type]}</span>
+            <span>использовано ${fmt(used)} / ${fmt(result.stockLength)} мм · остаток ${fmt(Math.max(0, bar.remaining))} мм</span>
+          </div>
+          <div class="bar-track">${cutsHtml}${wasteHtml}</div>
+        </div>
+      `;
+    }).join("");
+
+    const legendHtml = pieces.map((row) => {
+      const fill = TYPE_FILLS[row.type || "L"];
+      return `
+        <div class="legend-item">
+          <span class="swatch" style="background:${fill.bg}; border:1px solid ${fill.border};"></span>
+          <span style="color:#8FA3B8;">[${row.type || "L"}] ${row.label || `${row.length} мм`} — ${row.length} мм × ${row.qty}</span>
+        </div>
+      `;
+    }).join("");
+
+    panel.innerHTML = `
+      <div class="panel">
+        <h2 style="margin-bottom:12px;">РЕЗУЛЬТАТ</h2>
+        <div class="stat-grid">
+          <div class="stat-box"><div class="stat-label">ХЛЫСТОВ НУЖНО</div><div class="mono stat-value">${result.totalBars}</div></div>
+          <div class="stat-box"><div class="stat-label">ДЕТАЛЕЙ ВСЕГО</div><div class="mono stat-value">${result.totalPieces}</div></div>
+          <div class="stat-box"><div class="stat-label">ОТХОДЫ</div><div class="mono stat-value">${fmt(result.totalWaste)} мм · ${result.wastePercent.toFixed(1)}%</div></div>
+        </div>
+        <div class="type-grid">${typeBoxes}</div>
+        <div class="bars-list">${barsHtml}</div>
+        <div class="legend-row mono">${legendHtml}</div>
+      </div>
+    `;
+  }
+
+  function renderHistory() {
+    const panel = document.getElementById("historyPanel");
+    if (!historyLoaded || history.length === 0) { panel.innerHTML = ""; return; }
+
+    const rows = history.map((entry) => `
+      <div class="history-row">
+        <span class="mono" style="color:#8FA3B8;">${new Date(entry.ts).toLocaleString("ru-RU")}</span>
+        <span class="history-mid mono">хлыст ${entry.stockLength} мм · пропил ${entry.kerf} мм · ${entry.pieces.length} ${entry.pieces.length === 1 ? "позиция" : "позиций"}</span>
+        <span class="mono">${entry.result.totalBars} хлыст.${entry.result.totalBars === 1 ? "" : "ов"} · ${entry.result.wastePercent.toFixed(1)}% отход</span>
+        <div class="history-actions">
+          <button class="icon-btn" title="Открыть этот расчёт" data-ts="${entry.ts}" data-action="restore" style="color:#8FD1B9;">
+            <svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          </button>
+          <button class="icon-btn" title="Удалить запись" data-ts="${entry.ts}" data-action="delete" style="color:#C97064;">
+            <svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          </button>
+        </div>
+      </div>
+    `).join("");
+
+    panel.innerHTML = `
+      <div class="panel">
+        <div class="history-header">
+          <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8FA3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/></svg>
+          <h2>ИСТОРИЯ РАСЧЁТОВ</h2>
+        </div>
+        <div class="history-list">${rows}</div>
+      </div>
+    `;
+
+    panel.querySelectorAll("[data-action='restore']").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        const ts = Number(e.currentTarget.dataset.ts);
+        const entry = history.find((h) => h.ts === ts);
+        if (entry) restoreHistoryEntry(entry);
+      });
+    });
+    panel.querySelectorAll("[data-action='delete']").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        const ts = Number(e.currentTarget.dataset.ts);
+        deleteHistoryEntry(ts);
+      });
+    });
+  }
+
+  // ---------- Main calculation ----------
+
+  function calculate() {
+    renderError("");
+    const L = Number(document.getElementById("stockLength").value);
+    const K = Number(document.getElementById("kerf").value);
+
+    if (!L || L <= 0) {
+      renderError("Укажите длину хлыста профиля.");
+      result = null;
+      renderResult();
+      return;
+    }
+
+    const oversize = pieces.find((p) => Number(p.length) > L);
+    if (oversize) {
+      renderError(`Деталь "${oversize.label || oversize.length + " мм"}" длиннее хлыста (${oversize.length} мм > ${L} мм).`);
+      result = null;
+      renderResult();
+      return;
+    }
+
+    let items = [];
+    pieces.forEach((row, rowIdx) => {
+      const qty = Math.max(0, Number(row.qty) || 0);
+      for (let i = 0; i < qty; i++) {
+        items.push({ length: Number(row.length), label: row.label || `${row.length} мм`, type: row.type || "L", rowIdx });
+      }
+    });
+
+    if (items.length === 0) {
+      renderError("Добавьте хотя бы одну деталь с количеством > 0.");
+      result = null;
+      renderResult();
+      return;
+    }
+
+    const typeTotals = { L: { qty: 0, length: 0, bars: 0 }, T: { qty: 0, length: 0, bars: 0 }, Z: { qty: 0, length: 0, bars: 0 } };
+    let bars = [];
+    let unplacedCount = 0;
+
+    ["L", "T", "Z"].forEach((t) => {
+      const group = items.filter((it) => it.type === t);
+      if (group.length === 0) return;
+
+      group.forEach((item) => {
+        typeTotals[t].qty += 1;
+        typeTotals[t].length += item.length;
+      });
+
+      const { bins: initialBars, unplaced } = packItemsDP(group, L, K);
+      unplacedCount += unplaced;
+
+      const typeBars = reduceBinCount(initialBars, K).map((b, i) => ({ ...b, type: t, barIndex: i + 1 }));
+      typeTotals[t].bars = typeBars.length;
+      bars = bars.concat(typeBars);
+    });
+
+    if (unplacedCount > 0) {
+      renderError(`Не удалось разместить ${unplacedCount} дет. — с учётом пропила они не влезают в хлыст. Проверьте длину хлыста/пропил.`);
+      result = null;
+      renderResult();
+      return;
+    }
+
+    const totalStock = bars.length * L;
+    const totalWaste = bars.reduce((s, b) => s + Math.max(0, b.remaining), 0);
+    const wastePercent = (totalWaste / totalStock) * 100;
+
+    result = {
+      bars,
+      stockLength: L,
+      kerf: K,
+      totalBars: bars.length,
+      totalWaste,
+      wastePercent,
+      totalPieces: items.length,
+      typeTotals,
+    };
+
+    renderResult();
+
+    saveHistoryEntry({
+      ts: Date.now(),
+      stockLength: L,
+      kerf: K,
+      pieces: pieces.map(({ type, label, length, qty }) => ({ type, label, length, qty })),
+      result,
+    });
+  }
+
+  document.getElementById("calcBtn").addEventListener("click", calculate);
+  document.getElementById("addPieceBtn").addEventListener("click", addPiece);
+
+  renderPieces();
+  loadHistory();
+</script>
+</body>
+</html>
